@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nova
+      POSTGRES_PASSWORD: nova
+      POSTGRES_DB: nova_royale
+    ports: ["5432:5432"]
+    volumes: ["nova_pg:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "nova"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://nova:nova@postgres:5432/nova_royale?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-please_set_long_random}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-please_set_long_random}
+      PROVABLY_FAIR_HMAC_KEY: ${PROVABLY_FAIR_HMAC_KEY:-please_set}
+      CORS_ORIGIN: http://localhost:3000,http://localhost:5173
+      NODE_ENV: production
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    ports: ["4000:4000"]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+    environment:
+      NODE_ENV: production
+    depends_on: [backend]
+    ports: ["3000:3000"]
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:4000
+    depends_on: [backend]
+    ports: ["5173:80"]
+
+volumes:
+  nova_pg: {}

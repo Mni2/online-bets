@@ -1,0 +1,26 @@
+{
+  "name": "@nova/admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port ${ADMIN_PORT:-5173}",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --port ${ADMIN_PORT:-5173}",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nova/ui": "*",
+    "@nova/types": "*",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.23.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.2",
+    "@types/react-dom": "18.3.0",
+    "@vitejs/plugin-react": "4.3.0",
+    "typescript": "5.4.5",
+    "vite": "5.2.11"
+  }
+}

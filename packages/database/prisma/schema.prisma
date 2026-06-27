@@ -1,0 +1,451 @@
+// Nova Royale — Casino Platform
+// Production-grade Postgres schema. All money is stored as Decimal(36,8) in minor units via BigInt helpers.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// === Enums ===
+enum Role {
+  player
+  vip
+  moderator
+  admin
+  superadmin
+}
+
+enum KycStatus {
+  none
+  pending
+  approved
+  rejected
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  BTC
+  ETH
+  USDT
+}
+
+enum LedgerEntryType {
+  deposit
+  withdrawal
+  bet_debit
+  bet_credit
+  bonus_credit
+  bonus_debit
+  rakeback
+  refund
+  adjustment
+  transfer_in
+  transfer_out
+}
+
+enum GameCategory {
+  dice
+  crash
+  slots
+  roulette
+  blackjack
+  live
+  sports
+}
+
+enum BetStatus {
+  pending
+  won
+  lost
+  cancelled
+  refunded
+}
+
+enum BonusType {
+  welcome
+  deposit
+  free_spins
+  cashback
+  rakeback
+  reload
+  tournament
+  custom
+}
+
+enum BonusStatus {
+  active
+  completed
+  expired
+  cancelled
+  wagering_pending
+  wagering_complete
+}
+
+enum KycDocumentType {
+  passport
+  drivers_license
+  national_id
+  utility_bill
+  bank_statement
+  selfie
+}
+
+enum KycDocumentStatus {
+  pending
+  approved
+  rejected
+}
+
+enum TransactionStatus {
+  pending
+  processing
+  completed
+  failed
+  cancelled
+  reversed
+}
+
+enum PaymentMethod {
+  stripe
+  coinbase
+  manual
+  crypto
+  bank
+}
+
+enum ChatChannel {
+  global
+  vip
+  game
+  private
+}
+
+enum ChatMessageType {
+  text
+  system
+  tip
+  rain
+  moderator
+}
+
+// === Identity ===
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  username        String   @unique
+  displayName     String
+  passwordHash    String
+  role            Role     @default(player)
+  kycStatus       KycStatus @default(none)
+  emailVerifiedAt DateTime?
+  selfExcludedUntil DateTime?
+  lastLoginAt     DateTime?
+  lastLoginIp     String?
+  referralCode     String?  @unique
+  countryCode     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  wallets         Wallet[]
+  sessions        Session[]
+  refreshTokens   RefreshToken[]
+  bets            Bet[]
+  kycDocuments    KycDocument[]
+  bonusClaims     BonusClaim[]
+  referralsGiven  Referral[]      @relation("Referrer")
+  referralsTaken  Referral[]      @relation("Referred")
+  chatMessages    ChatMessage[]
+  vipProfile      VipProfile?
+  auditLogs       AuditLog[]
+  riskEvents      RiskEvent[]
+  notifications   Notification[]
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip           String
+  userAgent    String
+  fingerprint  String?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+
+  @@index([userId])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique
+  device      String?
+  ip          String?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  replacedBy  String?
+
+  @@index([userId])
+}
+
+model KycDocument {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         KycDocumentType
+  status       KycDocumentStatus @default(pending)
+  storageKey   String
+  reviewedById String?
+  reviewedAt   DateTime?
+  reviewNote   String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+// === Wallet ===
+model Wallet {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency      Currency
+  balance       Decimal  @default(0) @db.Decimal(36, 8)
+  locked        Decimal  @default(0) @db.Decimal(36, 8)
+  bonusBalance  Decimal  @default(0) @db.Decimal(36, 8)
+  version       Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  ledger        LedgerEntry[]
+  transactions  PaymentTransaction[]
+
+  @@unique([userId, currency])
+  @@index([currency])
+}
+
+model LedgerEntry {
+  id             String          @id @default(uuid())
+  walletId       String
+  wallet         Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type           LedgerEntryType
+  amount         Decimal         @db.Decimal(36, 8)
+  balanceAfter   Decimal         @db.Decimal(36, 8)
+  lockedAfter    Decimal         @db.Decimal(36, 8)
+  referenceType  String?
+  referenceId    String?
+  metadata       Json?
+  idempotencyKey String?         @unique
+  createdAt      DateTime        @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([referenceType, referenceId])
+}
+
+model PaymentTransaction {
+  id           String   @id @default(uuid())
+  walletId     String
+  wallet       Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  method       PaymentMethod
+  status       TransactionStatus @default(pending)
+  currency     Currency
+  amount       Decimal  @db.Decimal(36, 8)
+  fee          Decimal  @default(0) @db.Decimal(36, 8)
+  net          Decimal  @default(0) @db.Decimal(36, 8)
+  externalId   String?
+  externalPayload Json?
+  createdAt    DateTime @default(now())
+  completedAt  DateTime?
+
+  @@index([walletId, createdAt])
+  @@index([externalId])
+}
+
+// === Games ===
+model Game {
+  id           String        @id @default(uuid())
+  slug         String        @unique
+  name         String
+  category     GameCategory
+  rtp          Decimal       @db.Decimal(6, 3)
+  houseEdge    Decimal       @db.Decimal(6, 3)
+  isLive       Boolean       @default(false)
+  enabled      Boolean       @default(true)
+  config       Json
+  thumbnailUrl String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  bets         Bet[]
+  rounds       GameRound[]
+}
+
+model GameRound {
+  id            String   @id @default(uuid())
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  serverSeed    String
+  serverSeedHash String
+  clientSeed    String
+  nonce         Int
+  result        Json?
+  startedAt     DateTime @default(now())
+  settledAt     DateTime?
+
+  bets          Bet[]
+
+  @@index([gameId, startedAt])
+}
+
+model Bet {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  roundId       String?
+  round         GameRound? @relation(fields: [roundId], references: [id])
+  status        BetStatus @default(pending)
+  currency      Currency
+  amount        Decimal  @db.Decimal(36, 8)
+  payout        Decimal  @default(0) @db.Decimal(36, 8)
+  profit        Decimal  @default(0) @db.Decimal(36, 8)
+  multiplier    Decimal  @default(0) @db.Decimal(10, 4)
+  payload       Json
+  serverSeed    String?
+  serverSeedHash String?
+  clientSeed    String?
+  nonce         Int?
+  result        Json?
+  placedAt      DateTime @default(now())
+  settledAt     DateTime?
+
+  @@index([userId, placedAt])
+  @@index([gameId, placedAt])
+  @@index([status])
+}
+
+// === Bonuses / VIP / Referrals ===
+model Bonus {
+  id             String     @id @default(uuid())
+  code           String     @unique
+  name           String
+  type           BonusType
+  status         BonusStatus @default(active)
+  amount         Decimal    @db.Decimal(36, 8)
+  currency       Currency   @default(USD)
+  wageringReq    Decimal    @default(0) @db.Decimal(36, 8)
+  maxCashout     Decimal?   @db.Decimal(36, 8)
+  eligibleGames  Json?
+  expiresAt      DateTime?
+  createdAt      DateTime   @default(now())
+
+  claims         BonusClaim[]
+}
+
+model BonusClaim {
+  id            String   @id @default(uuid())
+  bonusId       String
+  bonus         Bonus    @relation(fields: [bonusId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Decimal  @db.Decimal(36, 8)
+  wageredAmount Decimal  @default(0) @db.Decimal(36, 8)
+  status        BonusStatus @default(active)
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  completedAt   DateTime?
+
+  @@index([userId])
+}
+
+model VipProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier         Int      @default(0)
+  xp           Int      @default(0)
+  rakebackBps  Int      @default(50)
+  managerName  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Referral {
+  id           String   @id @default(uuid())
+  referrerId   String
+  referrer     User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId   String   @unique
+  referred     User     @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+  code         String
+  rewardAmount Decimal  @default(0) @db.Decimal(36, 8)
+  rewardedAt   DateTime?
+  createdAt    DateTime @default(now())
+}
+
+// === Chat / Notifications ===
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   ChatChannel
+  type      ChatMessageType @default(text)
+  body      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+
+  @@index([channel, createdAt])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  kind      String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// === Risk / Compliance / Audit ===
+model RiskEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  kind      String
+  score     Int      @default(0)
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  target    String
+  metadata  Json
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}

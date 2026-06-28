@@ -1,0 +1,60 @@
+services:
+  - type: web
+    name: nova-backend
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./apps/backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BACKEND_PORT
+        value: "4000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nova-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: PROVABLY_FAIR_HMAC_KEY
+        generateValue: true
+      - key: PROVABLY_FAIR_SERVER_SEED
+        generateValue: true
+      - key: BCRYPT_ROUNDS
+        value: "12"
+      - key: HOUSE_EDGE_BPS
+        value: "150"
+    databases:
+      - name: nova-db
+        plan: starter
+        databaseName: nova_royale
+        user: nova
+
+  - type: web
+    name: nova-frontend
+    runtime: static
+    plan: starter
+    buildCommand: cd apps/frontend && npm install --legacy-peer-deps && npm run build
+    outputDir: apps/frontend/.next
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: nova-backend
+          type: web
+          property: url
+
+  - type: web
+    name: nova-admin
+    runtime: static
+    plan: starter
+    buildCommand: cd apps/admin && npm install --legacy-peer-deps && npm run build
+    outputDir: apps/admin/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: nova-backend
+          type: web
+          property: url

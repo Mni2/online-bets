@@ -1,13 +1,16 @@
 import esbuild from 'esbuild';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 
-const pkg = JSON.parse(readFileSync(resolve('package.json'), 'utf8'));
-
-// Mark all dependencies as external EXCEPT @nova/* workspace packages
-const external = Object.keys(pkg.dependencies || {}).filter(
-  (dep) => !dep.startsWith('@nova/')
-);
+const externalNodeModulesPlugin = {
+  name: 'external-node-modules',
+  setup(build) {
+    // Mark all bare imports (not starting with . or /) as external, EXCEPT our own @nova/* packages
+    build.onResolve({ filter: /^[^./]/ }, (args) => {
+      if (!args.path.startsWith('@nova/')) {
+        return { path: args.path, external: true };
+      }
+    });
+  },
+};
 
 esbuild.build({
   entryPoints: ['src/server.ts'],
@@ -16,6 +19,6 @@ esbuild.build({
   target: 'node20',
   format: 'esm',
   outfile: 'dist/server.js',
-  external,
+  plugins: [externalNodeModulesPlugin],
   sourcemap: true,
 }).catch(() => process.exit(1));

@@ -28,8 +28,18 @@ export const buildServer = async (): Promise<FastifyInstance> => {
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
   });
+  const allowedOrigins = (process.env.CORS_ORIGIN ?? "").split(",").filter(Boolean);
+  if (allowedOrigins.length === 0) {
+    allowedOrigins.push(
+      "https://frontend-five-chi-58.vercel.app",
+      "https://admin-tau-lyart-31.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:5173"
+    );
+  }
+
   await app.register(cors, {
-    origin: (process.env.CORS_ORIGIN ?? "").split(",").filter(Boolean),
+    origin: allowedOrigins,
     credentials: true,
   });
   await app.register(sensible);

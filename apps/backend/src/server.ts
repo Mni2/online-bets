@@ -97,7 +97,7 @@ export const buildServer = async (): Promise<FastifyInstance> => {
 if (process.env.SMOKE_TEST !== "1") {
   const start = async (): Promise<void> => {
     const app = await buildServer();
-    const port = Number(process.env.BACKEND_PORT ?? 4000);
+    const port = Number(process.env.PORT ?? process.env.BACKEND_PORT ?? 4000);
     const host = "0.0.0.0";
     try {
       await app.listen({ port, host });

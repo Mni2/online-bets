@@ -28,8 +28,9 @@ services:
       - key: HOUSE_EDGE_BPS
         value: "150"
 
-  - type: static
+  - type: web
     name: nova-frontend
+    runtime: static
     plan: free
     buildCommand: cd apps/frontend && npm install --legacy-peer-deps && npm run build
     staticPublishPath: ./apps/frontend/.next
@@ -40,8 +41,9 @@ services:
           type: web
           property: url
 
-  - type: static
+  - type: web
     name: nova-admin
+    runtime: static
     plan: free
     buildCommand: cd apps/admin && npm install --legacy-peer-deps && npm run build
     staticPublishPath: ./apps/admin/dist

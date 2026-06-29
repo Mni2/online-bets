@@ -1,4 +1,4 @@
-// Nova Royale — Casino Platform
+// Nova Royale â€” Casino Platform
 // Production-grade Postgres schema. All money is stored as Decimal(36,8) in minor units via BigInt helpers.
 
 generator client {

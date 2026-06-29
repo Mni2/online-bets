@@ -28,24 +28,6 @@ services:
       - key: HOUSE_EDGE_BPS
         value: "150"
 
-  - type: web
-    name: nova-frontend
-    runtime: static
-    buildCommand: cd apps/frontend && npm install --legacy-peer-deps && npm run build
-    staticPublishPath: ./apps/frontend/.next
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://nova-backend.onrender.com
-
-  - type: web
-    name: nova-admin
-    runtime: static
-    buildCommand: cd apps/admin && npm install --legacy-peer-deps && npm run build
-    staticPublishPath: ./apps/admin/dist
-    envVars:
-      - key: VITE_API_URL
-        value: https://nova-backend.onrender.com
-
 databases:
   - name: nova-db
     plan: free

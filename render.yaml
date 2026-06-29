@@ -2,7 +2,7 @@ services:
   - type: web
     name: nova-backend
     runtime: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./apps/backend/Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
@@ -29,14 +29,14 @@ services:
         value: "150"
     databases:
       - name: nova-db
-        plan: starter
+        plan: free
         databaseName: nova_royale
         user: nova
 
   - type: web
     name: nova-frontend
     runtime: static
-    plan: starter
+    plan: free
     buildCommand: cd apps/frontend && npm install --legacy-peer-deps && npm run build
     outputDir: apps/frontend/.next
     envVars:
@@ -49,7 +49,7 @@ services:
   - type: web
     name: nova-admin
     runtime: static
-    plan: starter
+    plan: free
     buildCommand: cd apps/admin && npm install --legacy-peer-deps && npm run build
     outputDir: apps/admin/dist
     envVars:

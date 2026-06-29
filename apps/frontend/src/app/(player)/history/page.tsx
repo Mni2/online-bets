@@ -53,7 +53,7 @@ export default function HistoryPage(): React.ReactElement {
           { key: "status", header: "Status", render: (r) => (
             <Badge tone={r.status === "won" ? "success" : r.status === "lost" ? "danger" : "neutral"}>{r.status}</Badge>
           ) },
-          { key: "roll", header: "Roll", align: "right", render: (r) => r.result?.roll?.toFixed?.(2) ?? "—" },
+          { key: "roll", header: "Roll", align: "right", render: (r) => r.result?.roll?.toFixed?.(2) ?? "â€”" },
         ]}
       />
     </div>

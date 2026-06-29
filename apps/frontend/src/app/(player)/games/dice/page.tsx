@@ -57,7 +57,7 @@ export default function DicePage(): React.ReactElement {
     <div>
       <div className="nova-section-title">
         <h2>Dice 100</h2>
-        <Badge tone="primary">Provably fair · 1.50% edge</Badge>
+        <Badge tone="primary">Provably fair Â· 1.50% edge</Badge>
       </div>
 
       {!access ? (
@@ -75,7 +75,7 @@ export default function DicePage(): React.ReactElement {
             <div>
               <div style={{ color: "var(--nova-text-3)", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.4 }}>Last roll</div>
               <div style={{ fontFamily: "var(--nova-font-mono)", fontSize: 28, fontWeight: 700 }}>
-                {result ? result.roll.toFixed(2) : "—"}
+                {result ? result.roll.toFixed(2) : "â€”"}
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
@@ -118,7 +118,7 @@ export default function DicePage(): React.ReactElement {
 
           <div className="nova-row" style={{ marginTop: 12, gridTemplateColumns: "1fr 1fr 1fr" }}>
             <Stat label="Win chance" value={`${winChance}%`} />
-            <Stat label="Multiplier" value={`${multiplier.toFixed(4)}×`} />
+            <Stat label="Multiplier" value={`${multiplier.toFixed(4)}Ã—`} />
             <Stat label="Nonce" value={String(nonce)} />
           </div>
 
@@ -132,7 +132,7 @@ export default function DicePage(): React.ReactElement {
         <h3 style={{ margin: "0 0 12px" }}>Recent rolls</h3>
         <Card padded>
           {history.length === 0 ? (
-            <p style={{ color: "var(--nova-text-3)" }}>No rolls yet — make your first bet.</p>
+            <p style={{ color: "var(--nova-text-3)" }}>No rolls yet â€” make your first bet.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {history.map((r) => (

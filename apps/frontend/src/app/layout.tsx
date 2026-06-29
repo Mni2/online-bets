@@ -1,13 +1,13 @@
 import "@nova/ui/tokens.css";
 import "./globals.css";
-import "./styles/nav.css";
+import "../styles/nav.css";
 import type { Metadata, Viewport } from "next";
 import { BRAND } from "@nova/shared";
 import { SiteNav } from "../components/SiteNav";
 import { SiteFooter } from "../components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: { default: `${BRAND.name} — ${BRAND.tagline}`, template: `%s · ${BRAND.name}` },
+  title: { default: `${BRAND.name} â€” ${BRAND.tagline}`, template: `%s Â· ${BRAND.name}` },
   description: BRAND.tagline,
   applicationName: BRAND.name,
   themeColor: "#0a0d1a",

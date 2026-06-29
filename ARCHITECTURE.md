@@ -1,4 +1,4 @@
-# Nova Royale — Architecture
+# Nova Royale â€” Architecture
 
 ## Goals
 
@@ -15,34 +15,34 @@
 
 ```
                      +--------------------------+
-                     ¦       Player Frontend    ¦  Next.js 14 App Router
-                     ¦       (apps/frontend)    ¦  React Server + Client
+                     Â¦       Player Frontend    Â¦  Next.js 14 App Router
+                     Â¦       (apps/frontend)    Â¦  React Server + Client
                      +--------------------------+
-                                  ¦ HTTPS / JSON + JWT
+                                  Â¦ HTTPS / JSON + JWT
                                   ?
                      +--------------------------+
-                     ¦        Backend API       ¦  Fastify + zod + Swagger
-                     ¦       (apps/backend)     ¦  Helmet, CORS, RateLimit
+                     Â¦        Backend API       Â¦  Fastify + zod + Swagger
+                     Â¦       (apps/backend)     Â¦  Helmet, CORS, RateLimit
                      +--------------------------+
-                          ¦         ¦        ¦
+                          Â¦         Â¦        Â¦
                   +-------?--+  +---?----+ +-?----------+
-                  ¦   auth   ¦  ¦ wallet ¦ ¦   games    ¦  (packages/*)
-                  ¦ JWT, RBAC¦  ¦ ledger ¦ ¦ provably   ¦
-                  ¦ refresh  ¦  ¦ locks  ¦ ¦   fair RNG ¦
+                  Â¦   auth   Â¦  Â¦ wallet Â¦ Â¦   games    Â¦  (packages/*)
+                  Â¦ JWT, RBACÂ¦  Â¦ ledger Â¦ Â¦ provably   Â¦
+                  Â¦ refresh  Â¦  Â¦ locks  Â¦ Â¦   fair RNG Â¦
                   +----------+  +--------+ +------------+
-                        ¦           ¦          ¦
+                        Â¦           Â¦          Â¦
                         +----------------------+
                                  ?
                     +----------------------------+
-                    ¦     Postgres + Prisma      ¦
-                    ¦  (packages/database)       ¦
+                    Â¦     Postgres + Prisma      Â¦
+                    Â¦  (packages/database)       Â¦
                     +----------------------------+
 
                      +--------------------------+
-                     ¦      Admin Console       ¦  Vite + React + react-router
-                     ¦       (apps/admin)       ¦
+                     Â¦      Admin Console       Â¦  Vite + React + react-router
+                     Â¦       (apps/admin)       Â¦
                      +--------------------------+
-                                  ¦ HTTPS / JSON + JWT
+                                  Â¦ HTTPS / JSON + JWT
                                   ?
                               Backend API
 ```
@@ -90,7 +90,7 @@ Every change goes through a Prisma transaction that:
 - 12-round bcrypt hashing.
 - Short-lived access tokens (15m default) + rotating refresh tokens (30d).
 - Each refresh issues a new refresh token and revokes the previous one.
-- Sessions are stored in `Session` table for audit / “sign out everywhere”.
+- Sessions are stored in `Session` table for audit / â€œsign out everywhereâ€.
 - RBAC: `player`, `vip`, `moderator`, `admin`, `superadmin`. `requireRole` is
   enforced via Fastify pre-handler and re-checked in admin routes.
 

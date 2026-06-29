@@ -2,7 +2,7 @@
   "name": "casino-platform",
   "version": "0.1.0",
   "private": true,
-  "description": "Nova Royale — modular, enterprise-grade online casino platform",
+  "description": "Nova Royale â€” modular, enterprise-grade online casino platform",
   "license": "UNLICENSED",
   "workspaces": [
     "packages/*",

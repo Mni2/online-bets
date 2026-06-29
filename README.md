@@ -2,7 +2,7 @@
 
 A production-ready, modular, enterprise-grade online casino platform. Nova Royale is
 designed for serious operators who need provably-fair games, a hardened wallet, fast
-payouts, KYC/AML flows, and a full admin console — all in a single TypeScript monorepo.
+payouts, KYC/AML flows, and a full admin console â€” all in a single TypeScript monorepo.
 
 > **Disclaimer.** Operating an online casino requires a gambling license, KYC/AML
 > controls, age verification, certified RNG, and certified game providers. Nova Royale
@@ -105,7 +105,7 @@ A reference implementation is provided in
 
 ## License
 
-UNLICENSED — proprietary. You are responsible for obtaining a gambling license and
+UNLICENSED â€” proprietary. You are responsible for obtaining a gambling license and
 complying with KYC/AML, age verification, and consumer protection rules in your
 jurisdiction before deploying Nova Royale to production.
 

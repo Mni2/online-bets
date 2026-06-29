@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 
 /* ---------- Money helpers ---------- */
 

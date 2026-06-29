@@ -21,7 +21,7 @@ export default function HomePage(): React.ReactElement {
     <div>
       <section className="nova-hero">
         <div>
-          <Badge tone="primary">New · Nova Royale v0.1</Badge>
+          <Badge tone="primary">New Â· Nova Royale v0.1</Badge>
           <h1 style={{ marginTop: 16 }}>{BRAND.name}</h1>
           <p>{BRAND.tagline} A modular, audited casino platform engineered for fairness, speed, and serious operators.</p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -42,7 +42,7 @@ export default function HomePage(): React.ReactElement {
             <div className="nova-dice-roll" style={{ left: "47%" }} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
-            <span className="nova-pill">Last roll · 47.21</span>
+            <span className="nova-pill">Last roll Â· 47.21</span>
             <span className="nova-pill">Server seed verified</span>
           </div>
         </Card>

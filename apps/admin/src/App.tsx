@@ -33,7 +33,7 @@ export function App(): React.ReactElement {
   return (
     <div className="app-shell">
       <aside className="app-sidebar">
-        <div style={{ fontWeight: 700, padding: "8px 12px 16px" }}>{BRAND.name} · Admin</div>
+        <div style={{ fontWeight: 700, padding: "8px 12px 16px" }}>{BRAND.name} Â· Admin</div>
         <NavLink to="/" end>Overview</NavLink>
         <NavLink to="/users">Users</NavLink>
         <NavLink to="/transactions">Transactions</NavLink>

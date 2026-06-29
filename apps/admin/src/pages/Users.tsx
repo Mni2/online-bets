@@ -28,7 +28,7 @@ export function UsersPage({ token }: { token: string }): React.ReactElement {
     <div>
       <div className="app-header">
         <h1 style={{ margin: 0 }}>Users</h1>
-        <Input placeholder="Search email, username, display name…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input placeholder="Search email, username, display nameâ€¦" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
       {error ? <Card><p style={{ color: "var(--nova-danger)" }}>{error}</p></Card> : null}
       <Table<UserRow>
@@ -50,7 +50,7 @@ export function UsersPage({ token }: { token: string }): React.ReactElement {
               {r.balances.map((b) => (
                 <span key={b.currency} style={{ fontFamily: "var(--nova-font-mono)" }}>{b.currency} {Number(b.balance).toFixed(2)}</span>
               ))}
-              {r.balances.length === 0 ? <span className="muted">—</span> : null}
+              {r.balances.length === 0 ? <span className="muted">â€”</span> : null}
             </div>
           ) },
           { key: "created", header: "Joined", render: (r) => new Date(r.createdAt).toLocaleDateString() },

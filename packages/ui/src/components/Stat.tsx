@@ -42,7 +42,7 @@ export const Stat: React.FC<StatProps> = ({ label, value, trend, trendDirection 
               : "var(--nova-text-2)",
         }}
       >
-        {trendDirection === "up" ? "?" : trendDirection === "down" ? "?" : "—"} {trend}
+        {trendDirection === "up" ? "?" : trendDirection === "down" ? "?" : "â€”"} {trend}
       </span>
     ) : null}
   </div>

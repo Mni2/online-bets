@@ -23,13 +23,13 @@ export function OverviewPage({ token }: { token: string }): React.ReactElement {
   }, [token]);
 
   if (error) return <Card><p style={{ color: "var(--nova-danger)" }}>{error}</p></Card>;
-  if (!data) return <Card><p>Loading…</p></Card>;
+  if (!data) return <Card><p>Loadingâ€¦</p></Card>;
 
   return (
     <div>
       <div className="app-header">
         <h1 style={{ margin: 0 }}>Operations overview</h1>
-        <Badge tone="primary">Live · last 24h</Badge>
+        <Badge tone="primary">Live Â· last 24h</Badge>
       </div>
       <div className="grid-stats">
         <Stat label="Users" value={data.users.toLocaleString()} trend="+8% wow" trendDirection="up" />
@@ -43,7 +43,7 @@ export function OverviewPage({ token }: { token: string }): React.ReactElement {
 
       <Card style={{ marginTop: 20 }}>
         <h3 style={{ marginTop: 0 }}>Health</h3>
-        <p style={{ color: "var(--nova-text-2)" }}>All systems operational. Database replication lag: 12ms · WebSocket fan-out: 14k concurrent · Cold wallet queue: empty.</p>
+        <p style={{ color: "var(--nova-text-2)" }}>All systems operational. Database replication lag: 12ms Â· WebSocket fan-out: 14k concurrent Â· Cold wallet queue: empty.</p>
       </Card>
     </div>
   );

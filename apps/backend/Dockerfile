@@ -7,8 +7,9 @@ RUN npm install --workspaces --include-workspace-root
 
 FROM node:20-alpine AS build
 WORKDIR /repo
+ARG DATABASE_URL=postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder
+ENV DATABASE_URL=$DATABASE_URL
 COPY --from=deps /repo /repo
-ENV DATABASE_URL=postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder
 RUN npx prisma generate --schema packages/database/prisma/schema.prisma
 RUN npm run -w @nova/backend build
 

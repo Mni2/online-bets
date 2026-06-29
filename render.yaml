@@ -28,12 +28,11 @@ services:
       - key: HOUSE_EDGE_BPS
         value: "150"
 
-  - type: web
+  - type: static
     name: nova-frontend
-    runtime: static
     plan: free
     buildCommand: cd apps/frontend && npm install --legacy-peer-deps && npm run build
-    outputDir: apps/frontend/.next
+    staticPublishPath: ./apps/frontend/.next
     envVars:
       - key: NEXT_PUBLIC_API_URL
         fromService:
@@ -41,12 +40,11 @@ services:
           type: web
           property: url
 
-  - type: web
+  - type: static
     name: nova-admin
-    runtime: static
     plan: free
     buildCommand: cd apps/admin && npm install --legacy-peer-deps && npm run build
-    outputDir: apps/admin/dist
+    staticPublishPath: ./apps/admin/dist
     envVars:
       - key: VITE_API_URL
         fromService:

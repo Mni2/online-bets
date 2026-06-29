@@ -27,11 +27,6 @@ services:
         value: "12"
       - key: HOUSE_EDGE_BPS
         value: "150"
-    databases:
-      - name: nova-db
-        plan: free
-        databaseName: nova_royale
-        user: nova
 
   - type: web
     name: nova-frontend
@@ -58,3 +53,9 @@ services:
           name: nova-backend
           type: web
           property: url
+
+databases:
+  - name: nova-db
+    plan: free
+    databaseName: nova_royale
+    user: nova

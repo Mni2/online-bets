@@ -1,4 +1,7 @@
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:4000";
+let API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:4000";
+if (API_URL && !API_URL.startsWith("http://") && !API_URL.startsWith("https://")) {
+  API_URL = `https://${API_URL}`;
+}
 
 export interface ApiOptions {
   method?: string;

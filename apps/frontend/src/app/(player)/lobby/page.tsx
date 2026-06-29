@@ -15,7 +15,11 @@ interface GameDTO {
 
 async function fetchGames(): Promise<GameDTO[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/games`, {
+    let apiEndpoint = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+    if (apiEndpoint && !apiEndpoint.startsWith("http://") && !apiEndpoint.startsWith("https://")) {
+      apiEndpoint = `https://${apiEndpoint}`;
+    }
+    const res = await fetch(`${apiEndpoint}/api/games`, {
       cache: "no-store",
     });
     if (!res.ok) return [];

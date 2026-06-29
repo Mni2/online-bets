@@ -36,10 +36,7 @@ services:
     staticPublishPath: ./apps/frontend/.next
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: nova-backend
-          type: web
-          property: url
+        value: https://nova-backend.onrender.com
 
   - type: web
     name: nova-admin
@@ -49,10 +46,7 @@ services:
     staticPublishPath: ./apps/admin/dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          name: nova-backend
-          type: web
-          property: url
+        value: https://nova-backend.onrender.com
 
 databases:
   - name: nova-db

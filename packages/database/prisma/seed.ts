@@ -5,8 +5,14 @@ import { randomBytes } from "node:crypto";
 const prisma = new PrismaClient();
 
 async function main(): Promise<void> {
-  const email = "admin@novaroyale.example";
+  const email = "novaroyalhelp@gmail.com";
   const passwordHash = await bcrypt.hash("ChangeMe!2026", 12);
+
+  // Update existing user with username "admin" to prevent unique constraint failures
+  await prisma.user.updateMany({
+    where: { username: "admin" },
+    data: { email },
+  });
 
   const admin = await prisma.user.upsert({
     where: { email },

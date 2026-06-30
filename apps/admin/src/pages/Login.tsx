@@ -18,6 +18,7 @@ export function LoginPage({ onAuthed }: { onAuthed: (token: string) => void }): 
   const [totpCode, setTotpCode] = useState("");
   const [emailOtpCode, setEmailOtpCode] = useState("");
   const [devEmailOtpCode, setDevEmailOtpCode] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -117,7 +118,9 @@ export function LoginPage({ onAuthed }: { onAuthed: (token: string) => void }): 
   if (mfaStep === "email_otp") {
     const handleVerifyEmail = async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null); setBusy(true);
+      setError(null);
+      setSuccessMessage(null);
+      setBusy(true);
       try {
         const r = await api<{ accessToken: string }>(
           "/api/auth/mfa/verify-email",
@@ -129,22 +132,67 @@ export function LoginPage({ onAuthed }: { onAuthed: (token: string) => void }): 
       } finally { setBusy(false); }
     };
 
+    const handleResend = async () => {
+      setError(null);
+      setSuccessMessage(null);
+      setBusy(true);
+      try {
+        const r = await api<{ status: string; userId: string; devEmailOtpCode?: string }>(
+          "/api/auth/mfa/resend-email-otp",
+          { method: "POST", body: { userId } }
+        );
+        if (r.devEmailOtpCode) setDevEmailOtpCode(r.devEmailOtpCode);
+        setEmailOtpCode("");
+        setSuccessMessage("A new verification code has been generated!");
+      } catch (err) {
+        setError((err as Error).message);
+      } finally { setBusy(false); }
+    };
+
     return (
       <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16 }}>
         <Card padded glow style={{ width: "100%", maxWidth: 420 }}>
           <h1 style={{ marginTop: 0 }}>3FA Step 3: Email OTP</h1>
           <p style={{ color: "var(--nova-text-2)" }}>A one-time passcode has been sent to your email address (and printed in server console logs).</p>
+          
           {devEmailOtpCode ? (
             <div style={{ background: "rgba(124, 92, 255, 0.12)", border: "1px solid var(--nova-primary)", borderRadius: 8, padding: 12, textAlign: "center", marginBottom: 12 }}>
               <div style={{ fontSize: 12, color: "var(--nova-text-2)", marginBottom: 4 }}>DEMO OTP CODE</div>
               <div style={{ fontSize: 24, letterSpacing: 4, fontFamily: "monospace", color: "var(--nova-primary)", fontWeight: "bold" }}>{devEmailOtpCode}</div>
             </div>
           ) : null}
+
+          {successMessage ? (
+            <p style={{ color: "var(--nova-success)", margin: "0 0 12px 0", fontSize: 13, textAlign: "center", fontWeight: 600 }}>
+              {successMessage}
+            </p>
+          ) : null}
+
           <form onSubmit={handleVerifyEmail} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <Input label="6-Digit Email Code" value={emailOtpCode} onChange={(e) => setEmailOtpCode(e.target.value)} required />
             {error ? <p style={{ color: "var(--nova-danger)" }}>{error}</p> : null}
             <Button type="submit" block loading={busy}>Verify & Log In</Button>
           </form>
+
+          <div style={{ textAlign: "center", marginTop: 14 }}>
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={busy}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--nova-primary)",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "underline",
+                opacity: busy ? 0.6 : 1
+              }}
+            >
+              Resend verification code
+            </button>
+          </div>
         </Card>
       </div>
     );

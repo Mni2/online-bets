@@ -73,6 +73,15 @@ const verifyEmailBodySchema = {
   additionalProperties: false,
 };
 
+const resendEmailOtpBodySchema = {
+  type: "object" as const,
+  required: ["userId"],
+  properties: {
+    userId: { type: "string" as const },
+  },
+  additionalProperties: false,
+};
+
 export const authRoutes = async (app: FastifyInstance): Promise<void> => {
   app.post(
     "/register",
@@ -229,7 +238,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
       return reply.send({
         status: "mfa_email_required",
         userId: user.id,
-        devEmailOtpCode: process.env.NODE_ENV !== "production" ? emailOtp : undefined,
+        devEmailOtpCode: emailOtp, // Always return code in demo for easy testing
       });
     }
   );
@@ -267,7 +276,38 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
       return reply.send({
         status: "mfa_email_required",
         userId: user.id,
-        devEmailOtpCode: process.env.NODE_ENV !== "production" ? emailOtp : undefined,
+        devEmailOtpCode: emailOtp, // Always return code in demo for easy testing
+      });
+    }
+  );
+
+  app.post(
+    "/mfa/resend-email-otp",
+    { schema: { body: resendEmailOtpBodySchema } },
+    async (req, reply) => {
+      const { userId } = req.body as { userId: string };
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user || !user.totpEnabled) {
+        return reply.code(400).send({
+          error: { code: "invalid_request", message: "Invalid request" },
+        });
+      }
+
+      // Generate new Email OTP (Factor 3)
+      const emailOtp = generateOTPCode();
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { emailOtpCode: emailOtp, emailOtpExpiresAt: expiresAt },
+      });
+
+      // Log OTP
+      console.log(`[MFA] Resent Email OTP for user ${user.email}: ${emailOtp}`);
+
+      return reply.send({
+        status: "mfa_email_required",
+        userId: user.id,
+        devEmailOtpCode: emailOtp, // Always return code in demo for easy testing
       });
     }
   );

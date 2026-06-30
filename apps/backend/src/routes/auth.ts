@@ -6,6 +6,9 @@ import {
   isPasswordStrong,
   logout,
   refreshSession,
+  generateTOTPSecret,
+  verifyTOTP,
+  generateOTPCode,
 } from "@nova/auth";
 
 const registerBodySchema = {
@@ -37,6 +40,36 @@ const refreshBodySchema = {
   type: "object" as const,
   required: ["refreshToken"],
   properties: { refreshToken: { type: "string" as const } },
+  additionalProperties: false,
+};
+
+const setupTotpBodySchema = {
+  type: "object" as const,
+  required: ["userId", "token"],
+  properties: {
+    userId: { type: "string" as const },
+    token: { type: "string" as const, minLength: 6, maxLength: 6 },
+  },
+  additionalProperties: false,
+};
+
+const verifyTotpBodySchema = {
+  type: "object" as const,
+  required: ["userId", "token"],
+  properties: {
+    userId: { type: "string" as const },
+    token: { type: "string" as const, minLength: 6, maxLength: 6 },
+  },
+  additionalProperties: false,
+};
+
+const verifyEmailBodySchema = {
+  type: "object" as const,
+  required: ["userId", "code"],
+  properties: {
+    userId: { type: "string" as const },
+    code: { type: "string" as const, minLength: 6, maxLength: 6 },
+  },
   additionalProperties: false,
 };
 
@@ -99,6 +132,49 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
     async (req, reply) => {
       const body = req.body as any;
       try {
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [{ email: body.identifier.toLowerCase() }, { username: body.identifier }],
+          },
+        });
+        if (!user) {
+          return reply.code(401).send({
+            error: { code: "invalid_credentials", message: "Invalid credentials" },
+          });
+        }
+
+        const { verifyPassword } = await import("@nova/auth");
+        const ok = await verifyPassword(body.password, user.passwordHash);
+        if (!ok) {
+          return reply.code(401).send({
+            error: { code: "invalid_credentials", message: "Invalid credentials" },
+          });
+        }
+
+        // If user is admin/superadmin, trigger 3FA
+        if (user.role === "admin" || user.role === "superadmin") {
+          if (!user.totpEnabled) {
+            // Setup TOTP
+            const secret = generateTOTPSecret();
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { totpSecret: secret },
+            });
+            const totpUri = `otpauth://totp/NovaRoyale:${user.email}?secret=${secret}&issuer=NovaRoyale`;
+            return reply.send({
+              status: "mfa_setup",
+              userId: user.id,
+              totpSecret: secret,
+              totpUri,
+            });
+          } else {
+            return reply.send({
+              status: "mfa_totp_required",
+              userId: user.id,
+            });
+          }
+        }
+
         const result = await authenticate({
           identifier: body.identifier,
           password: body.password,
@@ -106,11 +182,163 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
           userAgent: req.headers["user-agent"] ?? "",
         });
         return reply.send(result);
-      } catch {
+      } catch (err) {
         return reply.code(401).send({
           error: { code: "invalid_credentials", message: "Invalid credentials" },
         });
       }
+    }
+  );
+
+  app.post(
+    "/mfa/setup-totp",
+    { schema: { body: setupTotpBodySchema } },
+    async (req, reply) => {
+      const { userId, token } = req.body as { userId: string; token: string };
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user || !user.totpSecret) {
+        return reply.code(400).send({
+          error: { code: "invalid_request", message: "Invalid request" },
+        });
+      }
+
+      const verified = verifyTOTP(token, user.totpSecret);
+      if (!verified) {
+        return reply.code(400).send({
+          error: { code: "invalid_token", message: "Invalid verification code" },
+        });
+      }
+
+      // Enable TOTP
+      await prisma.user.update({
+        where: { id: userId },
+        data: { totpEnabled: true },
+      });
+
+      // Send Email OTP (Factor 3)
+      const emailOtp = generateOTPCode();
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+      await prisma.user.update({
+        where: { id: userId },
+        data: { emailOtpCode: emailOtp, emailOtpExpiresAt: expiresAt },
+      });
+
+      // Log OTP (simulated email delivery)
+      console.log(`[MFA] Email OTP for user ${user.email}: ${emailOtp}`);
+
+      return reply.send({
+        status: "mfa_email_required",
+        userId: user.id,
+        devEmailOtpCode: process.env.NODE_ENV !== "production" ? emailOtp : undefined,
+      });
+    }
+  );
+
+  app.post(
+    "/mfa/verify-totp",
+    { schema: { body: verifyTotpBodySchema } },
+    async (req, reply) => {
+      const { userId, token } = req.body as { userId: string; token: string };
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user || !user.totpSecret || !user.totpEnabled) {
+        return reply.code(400).send({
+          error: { code: "invalid_request", message: "Invalid request" },
+        });
+      }
+
+      const verified = verifyTOTP(token, user.totpSecret);
+      if (!verified) {
+        return reply.code(400).send({
+          error: { code: "invalid_token", message: "Invalid verification code" },
+        });
+      }
+
+      // Send Email OTP (Factor 3)
+      const emailOtp = generateOTPCode();
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { emailOtpCode: emailOtp, emailOtpExpiresAt: expiresAt },
+      });
+
+      // Log OTP
+      console.log(`[MFA] Email OTP for user ${user.email}: ${emailOtp}`);
+
+      return reply.send({
+        status: "mfa_email_required",
+        userId: user.id,
+        devEmailOtpCode: process.env.NODE_ENV !== "production" ? emailOtp : undefined,
+      });
+    }
+  );
+
+  app.post(
+    "/mfa/verify-email",
+    { schema: { body: verifyEmailBodySchema } },
+    async (req, reply) => {
+      const { userId, code } = req.body as { userId: string; code: string };
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (
+        !user ||
+        !user.emailOtpCode ||
+        !user.emailOtpExpiresAt ||
+        user.emailOtpExpiresAt < new Date()
+      ) {
+        return reply.code(400).send({
+          error: { code: "invalid_request", message: "Verification code expired or invalid" },
+        });
+      }
+
+      if (user.emailOtpCode !== code) {
+        return reply.code(400).send({
+          error: { code: "invalid_code", message: "Invalid verification code" },
+        });
+      }
+
+      // Clear OTP
+      await prisma.user.update({
+        where: { id: userId },
+        data: { emailOtpCode: null, emailOtpExpiresAt: null },
+      });
+
+      // Generate standard access and refresh tokens
+      const { signAccessToken, signRefreshToken, sha256 } = await import("@nova/auth");
+      const REFRESH_TTL = Number(process.env.JWT_REFRESH_TTL ?? 60 * 60 * 24 * 30);
+      
+      const claims = { sub: user.id, role: user.role, username: user.username };
+      const accessToken = signAccessToken(claims);
+      const refreshToken = signRefreshToken(claims);
+      const tokenHash = sha256(refreshToken);
+
+      await prisma.refreshToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          ip: req.ip,
+          device: req.headers["user-agent"] ?? "",
+          expiresAt: new Date(Date.now() + REFRESH_TTL * 1000),
+        },
+      });
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date(), lastLoginIp: req.ip },
+      });
+
+      const ACCESS_TTL = Number(process.env.JWT_ACCESS_TTL ?? 900);
+
+      return reply.send({
+        accessToken,
+        refreshToken,
+        expiresIn: ACCESS_TTL,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          displayName: user.displayName,
+          role: user.role,
+        },
+      });
     }
   );
 

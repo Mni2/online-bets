@@ -150,6 +150,10 @@ model User {
   lastLoginIp     String?
   referralCode     String?  @unique
   countryCode     String?
+  totpSecret      String?
+  totpEnabled     Boolean   @default(false)
+  emailOtpCode    String?
+  emailOtpExpiresAt DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

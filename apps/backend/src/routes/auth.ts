@@ -10,6 +10,7 @@ import {
   verifyTOTP,
   generateOTPCode,
 } from "@nova/auth";
+import { sendEmail } from "../utils/email.js";
 
 const registerBodySchema = {
   type: "object" as const,
@@ -141,6 +142,23 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
 
       console.log(`[Registration] Email verification OTP for ${user.email}: ${emailOtp}`);
 
+      // Send actual email using Nodemailer
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your email address - Nova Royale",
+        text: `Welcome to Nova Royale! Your email verification code is: ${emailOtp}. This code expires in 15 minutes.`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+            <h2 style="color: #7c5cff; text-align: center;">Welcome to Nova Royale!</h2>
+            <p>Thank you for signing up. Please verify your email address by entering the code below on the signup screen:</p>
+            <div style="background: #f4f2ff; border: 1px solid #7c5cff; border-radius: 8px; padding: 16px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 28px; letter-spacing: 4px; font-family: monospace; color: #7c5cff; font-weight: bold;">${emailOtp}</span>
+            </div>
+            <p style="color: #666; font-size: 13px;">This code will expire in 15 minutes. If you did not create an account on Nova Royale, please ignore this email.</p>
+          </div>
+        `
+      });
+
       return reply.send({
         status: "email_verification_required",
         userId: user.id,
@@ -251,6 +269,23 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
 
       // Log OTP
       console.log(`[Registration] Resent email verification OTP for user ${user.email}: ${emailOtp}`);
+
+      // Send actual email using Nodemailer
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your email address - Nova Royale",
+        text: `Your new email verification code is: ${emailOtp}. This code expires in 15 minutes.`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+            <h2 style="color: #7c5cff; text-align: center;">Verify your email</h2>
+            <p>You requested a new verification code. Please enter the code below on the verification screen:</p>
+            <div style="background: #f4f2ff; border: 1px solid #7c5cff; border-radius: 8px; padding: 16px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 28px; letter-spacing: 4px; font-family: monospace; color: #7c5cff; font-weight: bold;">${emailOtp}</span>
+            </div>
+            <p style="color: #666; font-size: 13px;">This code will expire in 15 minutes. If you did not request this, you can safely ignore this email.</p>
+          </div>
+        `
+      });
 
       return reply.send({
         status: "email_verification_required",

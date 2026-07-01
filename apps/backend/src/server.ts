@@ -6,16 +6,27 @@ import rateLimit from "@fastify/rate-limit";
 import cookie from "@fastify/cookie";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import fastifyWebsocket from "@fastify/websocket";
 import { ZodError } from "zod";
 
 import { authRoutes } from "./routes/auth.js";
 import { walletRoutes } from "./routes/wallet.js";
 import { gameRoutes } from "./routes/games.js";
+import { crashRoutes } from "./routes/crash.js";
 import { userRoutes } from "./routes/users.js";
 import { adminRoutes } from "./routes/admin.js";
 import { systemRoutes } from "./routes/system.js";
 import { registerAuthPreHandler } from "./plugins/auth.js";
 import { formatLog } from "@nova/shared";
+import { CrashGameLoop } from "@nova/games";
+import { prisma } from "@nova/database";
+import { lockFunds, settleFunds } from "@nova/wallet";
+
+declare module "fastify" {
+  interface FastifyInstance {
+    crashLoop: CrashGameLoop;
+  }
+}
 
 export const buildServer = async (): Promise<FastifyInstance> => {
   const app = Fastify({
@@ -44,6 +55,7 @@ export const buildServer = async (): Promise<FastifyInstance> => {
   });
   await app.register(sensible);
   await app.register(cookie);
+  await app.register(fastifyWebsocket);
   await app.register(rateLimit, {
     max: 10000,
     timeWindow: "1 minute",
@@ -99,7 +111,32 @@ export const buildServer = async (): Promise<FastifyInstance> => {
   await app.register(userRoutes, { prefix: "/api/users" });
   await app.register(walletRoutes, { prefix: "/api/wallet" });
   await app.register(gameRoutes, { prefix: "/api/games" });
+  await app.register(crashRoutes, { prefix: "/api/games/crash" });
   await app.register(adminRoutes, { prefix: "/api/admin" });
+
+  const crashLoop = new CrashGameLoop(
+    prisma,
+    (msg) => {
+      // @ts-ignore
+      const clients = app.websocketServer?.clients;
+      if (clients) {
+        const payloadStr = JSON.stringify(msg);
+        for (const client of clients) {
+          if (client.readyState === 1) { // OPEN
+            client.send(payloadStr);
+          }
+        }
+      }
+    },
+    lockFunds,
+    settleFunds
+  );
+  
+  if (process.env.SMOKE_TEST !== "1") {
+    await crashLoop.start();
+  }
+  
+  app.decorate("crashLoop", crashLoop);
 
   return app;
 };

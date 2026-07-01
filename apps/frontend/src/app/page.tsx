@@ -10,10 +10,10 @@ const features = [
 ];
 
 const games = [
-  { slug: "dice-100", name: "Dice 100", tag: "Originals", desc: "Roll under or over. 1.5% house edge." },
-  { slug: "crash-arcade", name: "Crash Arcade", tag: "Live", desc: "Cash out before the rocket leaves." },
-  { slug: "roulette-eu", name: "European Roulette", tag: "Live", desc: "Single-zero wheel, classic bets." },
-  { slug: "blackjack-az", name: "Blackjack AZ", tag: "Table", desc: "Six-deck shoe, late surrender." },
+  { slug: "dice", name: "Dice 100", tag: "Originals", desc: "Roll under or over. 1.5% house edge." },
+  { slug: "crash", name: "Crash Arcade", tag: "Live", desc: "Cash out before the rocket leaves." },
+  { slug: "roulette", name: "European Roulette", tag: "Live", desc: "Single-zero wheel, classic bets." },
+  { slug: "blackjack", name: "Blackjack AZ", tag: "Table", desc: "Six-deck shoe, late surrender." },
 ];
 
 export default function HomePage(): React.ReactElement {

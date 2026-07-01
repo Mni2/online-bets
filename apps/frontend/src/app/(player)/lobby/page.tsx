@@ -46,7 +46,7 @@ export default async function LobbyPage(): Promise<React.ReactElement> {
 
       <div className="nova-grid">
         {list.map((g) => (
-          <Link key={g.id} href={`/games/${g.slug}`} className="nova-game-card">
+          <Link key={g.id} href={`/games/${g.category}`} className="nova-game-card">
             <div className="nova-thumb" aria-label={`${g.name} thumbnail`} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{g.name}</strong>

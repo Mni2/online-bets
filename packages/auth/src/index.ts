@@ -186,3 +186,5 @@ export const isPasswordStrong = (password: string): boolean => {
 export const safeCompare = (a: string, b: string): boolean => constantTimeEquals(a, b);
 
 export * from "./totp.js";
+
+export { sha256 } from "@nova/shared";

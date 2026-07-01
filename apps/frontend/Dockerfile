@@ -19,5 +19,6 @@ COPY --from=build /repo/apps/frontend/.next ./.next
 COPY --from=build /repo/apps/frontend/public ./public
 COPY --from=build /repo/apps/frontend/package.json ./
 COPY --from=build /repo/node_modules ./node_modules
+COPY --from=build /repo/apps/frontend/node_modules* ./node_modules/
 EXPOSE 3000
 CMD ["sh", "-c", "npx next start -p 3000"]

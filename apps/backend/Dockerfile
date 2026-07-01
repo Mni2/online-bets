@@ -20,6 +20,7 @@ COPY --from=build /repo/apps/backend/dist ./dist
 COPY --from=build /repo/apps/backend/package.json ./
 COPY --from=build /repo/packages ./node_modules/../packages
 COPY --from=build /repo/node_modules ./node_modules
+COPY --from=build /repo/apps/backend/node_modules* ./node_modules/
 COPY --from=build /repo/packages/database/prisma ./prisma
 EXPOSE 4000
 CMD ["sh", "-c", "npx prisma db push --schema prisma/schema.prisma && npx tsx prisma/seed.ts && node dist/server.js"]

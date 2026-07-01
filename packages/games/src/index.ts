@@ -251,3 +251,4 @@ export * from "./crash/service/CrashGameLoop.js";
 export * from "./crash/tests/crash.spec.js";
 export * from "./roulette/engine/roulette.js";
 export * from "./blackjack/engine/blackjack.js";
+export * from "./slots/engine/slots.js";

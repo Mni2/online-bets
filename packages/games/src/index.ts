@@ -119,6 +119,10 @@ export const playDice = async (
   const game = await prisma.game.findUnique({ where: { slug: input.gameSlug } });
   if (!game || !game.enabled) throw new Error("game_unavailable");
 
+  // Ensure the wallet exists before playing to avoid "wallet_not_found" error
+  const { getOrCreateWallet } = await import("@nova/wallet");
+  await getOrCreateWallet({ userId: input.userId, currency: input.currency });
+
   const serverSeed = newServerSeed();
   const serverSeedHash = hashServerSeed(serverSeed);
 

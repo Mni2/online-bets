@@ -209,6 +209,19 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         },
       });
 
+      // Create a default USD wallet with $1,000.00 demo balance for new players
+      await prisma.wallet.upsert({
+        where: { userId_currency: { userId: user.id, currency: "USD" } },
+        update: {},
+        create: {
+          userId: user.id,
+          currency: "USD",
+          balance: "1000.00",
+          bonusBalance: "0",
+          locked: "0",
+        },
+      });
+
       // Generate access and refresh tokens to log in
       const { signAccessToken, signRefreshToken, sha256 } = await import("@nova/auth");
       const REFRESH_TTL = Number(process.env.JWT_REFRESH_TTL ?? 60 * 60 * 24 * 30);

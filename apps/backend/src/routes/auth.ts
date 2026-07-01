@@ -37,6 +37,15 @@ const loginBodySchema = {
   additionalProperties: false,
 };
 
+const googleLoginBodySchema = {
+  type: "object" as const,
+  required: ["credential"],
+  properties: {
+    credential: { type: "string" as const },
+  },
+  additionalProperties: false,
+};
+
 const refreshBodySchema = {
   type: "object" as const,
   required: ["refreshToken"],
@@ -356,6 +365,75 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
           error: { code: "invalid_credentials", message: "Invalid credentials" },
         });
       }
+    }
+  );
+
+  app.post(
+    "/google-login",
+    { schema: { body: googleLoginBodySchema } },
+    async (req, reply) => {
+      const { credential } = req.body as { credential: string };
+
+      // Verify Google ID token
+      let payload;
+      try {
+        const verifyRes = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+        );
+        if (!verifyRes.ok) {
+          throw new Error("Invalid Google token");
+        }
+        payload = await verifyRes.json() as { email?: string; email_verified?: string };
+      } catch (err) {
+        return reply.code(400).send({
+          error: { code: "invalid_token", message: "Failed to verify Google account" },
+        });
+      }
+
+      if (!payload.email || payload.email_verified !== "true") {
+        return reply.code(400).send({
+          error: { code: "email_unverified", message: "Google email is not verified" },
+        });
+      }
+
+      const email = payload.email.toLowerCase();
+
+      // Find user
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        return reply.code(401).send({
+          error: { code: "access_denied", message: "No admin user found with this Google email. Access denied." },
+        });
+      }
+
+      // Ensure they have admin access
+      if (user.role !== "admin" && user.role !== "superadmin") {
+        return reply.code(403).send({
+          error: { code: "forbidden", message: "Access denied. Admin role required." },
+        });
+      }
+
+      // Check if TOTP is enabled
+      if (user.totpEnabled) {
+        return reply.send({
+          status: "mfa_totp_required",
+          userId: user.id,
+        });
+      }
+
+      // If TOTP is NOT setup, generate a secret and trigger setup
+      const secret = generateTOTPSecret();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { totpSecret: secret },
+      });
+      const totpUri = `otpauth://totp/NovaRoyale:${user.email}?secret=${secret}&issuer=NovaRoyale`;
+      return reply.send({
+        status: "mfa_setup",
+        userId: user.id,
+        totpSecret: secret,
+        totpUri,
+      });
     }
   );
 

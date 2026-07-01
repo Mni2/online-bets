@@ -227,6 +227,7 @@ export const listGames = async (
     name: g.name,
     category: g.category,
     rtp: Number(g.rtp.toString()),
+    houseEdge: Number(g.houseEdge.toString()),
     isLive: g.isLive,
     thumbnail: g.thumbnailUrl?.endsWith(".jpg") ? g.thumbnailUrl : `/games/${g.category}.jpg`,
   }));
@@ -251,3 +252,6 @@ export * from "./crash/tests/crash.spec.js";
 export * from "./roulette/engine/roulette.js";
 export * from "./blackjack/engine/blackjack.js";
 export * from "./slots/engine/slots.js";
+export * from "./live/engine/adapter.js";
+export * from "./sports/engine/sports.js";
+export * from "./aggregator/engine/aggregator.js";

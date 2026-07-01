@@ -227,9 +227,8 @@ export const listGames = async (
     name: g.name,
     category: g.category,
     rtp: Number(g.rtp.toString()),
-    houseEdge: Number(g.houseEdge.toString()),
     isLive: g.isLive,
-    thumbnail: g.thumbnailUrl ?? "/games/placeholder.png",
+    thumbnail: g.thumbnailUrl?.endsWith(".jpg") ? g.thumbnailUrl : `/games/${g.category}.jpg`,
   }));
 };
 

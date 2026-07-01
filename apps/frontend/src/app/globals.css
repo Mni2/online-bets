@@ -113,34 +113,45 @@ a { color: inherit; text-decoration: none; }
 .nova-game-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 18px;
+  gap: 12px;
+  padding: 16px;
   border-radius: var(--nova-radius-lg);
   background:
-    radial-gradient(220px 100px at 0% 0%, rgba(124, 92, 255, 0.18), transparent 70%),
-    var(--nova-surface);
-  border: 1px solid var(--nova-border);
-  transition: transform 120ms ease, border-color 120ms;
+    radial-gradient(250px 150px at 50% 0%, rgba(124, 92, 255, 0.25), transparent 70%),
+    linear-gradient(180deg, var(--nova-surface), rgba(18, 22, 46, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .nova-game-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--nova-border-strong);
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(41, 224, 197, 0.6);
+  box-shadow: 0 12px 32px rgba(124, 92, 255, 0.35), 0 0 20px rgba(41, 224, 197, 0.2);
 }
 
 .nova-thumb {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   border-radius: var(--nova-radius-md);
   background: linear-gradient(135deg, #2a1f5d, #11152a);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease;
+}
+
+.nova-game-card:hover .nova-thumb {
+  transform: scale(1.03);
 }
 
 .nova-thumb::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(80% 60% at 50% 50%, rgba(255,255,255,0.06), transparent 70%);
+  background: linear-gradient(180deg, transparent 60%, rgba(10, 13, 26, 0.6) 100%);
+  pointer-events: none;
 }
 
 .nova-section-title {

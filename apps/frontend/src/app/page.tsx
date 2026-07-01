@@ -10,10 +10,11 @@ const features = [
 ];
 
 const games = [
-  { slug: "dice", name: "Dice 100", tag: "Originals", desc: "Roll under or over. 20.0% house edge." },
-  { slug: "crash", name: "Crash Arcade", tag: "Live", desc: "Cash out before the rocket leaves." },
-  { slug: "roulette", name: "European Roulette", tag: "Live", desc: "Single-zero wheel, classic bets." },
-  { slug: "blackjack", name: "Blackjack AZ", tag: "Table", desc: "Six-deck shoe, late surrender." },
+  { slug: "dice", name: "Dice 100", tag: "Originals", desc: "Roll under or over. 80.0% RTP / 20% Edge.", thumb: "/games/dice.jpg" },
+  { slug: "crash", name: "Crash Arcade", tag: "Live", desc: "Cash out before the kite flies away. 80% RTP.", thumb: "/games/crash.jpg" },
+  { slug: "roulette", name: "European Roulette", tag: "Live", desc: "Single-zero VIP wheel. 80% RTP.", thumb: "/games/roulette.jpg" },
+  { slug: "blackjack", name: "Blackjack AZ", tag: "Table", desc: "6-deck shoe, double & surrender. 80% RTP.", thumb: "/games/blackjack.jpg" },
+  { slug: "slots", name: "Nova Slots", tag: "Slots", desc: "5x3 Neon Reels, 20 paylines. 80% RTP.", thumb: "/games/slots.jpg" },
 ];
 
 export default function HomePage(): React.ReactElement {
@@ -50,18 +51,41 @@ export default function HomePage(): React.ReactElement {
 
       <section>
         <div className="nova-section-title">
-          <h2>Featured games</h2>
-          <Link href="/lobby"><Button variant="ghost">All games</Button></Link>
+          <h2 style={{ fontSize: 28, background: "linear-gradient(135deg, #fff, #7c5cff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            🔥 Featured VIP Games
+          </h2>
+          <Link href="/lobby"><Button variant="ghost">All games ➔</Button></Link>
         </div>
-        <div className="nova-grid">
+        <div className="nova-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 24 }}>
           {games.map((g) => (
             <Link key={g.slug} href={`/games/${g.slug}`} className="nova-game-card">
-              <div className="nova-thumb" />
+              <div
+                className="nova-thumb"
+                style={{
+                  backgroundImage: `url('${g.thumb}')`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+                aria-label={`${g.name} thumbnail`}
+              >
+                {g.tag === "Live" && (
+                  <div style={{ position: "absolute", top: 10, left: 10, zIndex: 2 }}>
+                    <span style={{
+                      background: "linear-gradient(135deg, #FF1744, #D50000)", color: "#fff",
+                      padding: "4px 10px", borderRadius: 12, fontSize: 11, fontWeight: 800,
+                      letterSpacing: 1, boxShadow: "0 2px 10px rgba(255,23,68,0.5)"
+                    }}>● LIVE</span>
+                  </div>
+                )}
+              </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong>{g.name}</strong>
+                <strong style={{ fontSize: 18, color: "#fff" }}>{g.name}</strong>
                 <Badge tone={g.tag === "Live" ? "primary" : "neutral"}>{g.tag}</Badge>
               </div>
               <span style={{ color: "var(--nova-text-2)", fontSize: 13 }}>{g.desc}</span>
+              <Button size="md" block style={{ background: "linear-gradient(135deg, #7c5cff, #29e0c5)", fontWeight: 700, border: "none", marginTop: 4 }}>
+                PLAY NOW ➔
+              </Button>
             </Link>
           ))}
         </div>

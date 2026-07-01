@@ -45,6 +45,7 @@ async function main(): Promise<void> {
     update: {
       rtp: "80.0",
       houseEdge: "20.0",
+      thumbnailUrl: "/games/dice.jpg",
     },
     create: {
       slug: "dice-100",
@@ -55,7 +56,7 @@ async function main(): Promise<void> {
       isLive: false,
       enabled: true,
       config: { minBet: "0.10", maxBet: "10000", maxMultiplier: 99 },
-      thumbnailUrl: "/games/dice.png",
+      thumbnailUrl: "/games/dice.jpg",
     },
   });
 
@@ -64,6 +65,7 @@ async function main(): Promise<void> {
     update: {
       rtp: "80.0",
       houseEdge: "20.0",
+      thumbnailUrl: "/games/crash.jpg",
     },
     create: {
       slug: "crash-arcade",
@@ -74,7 +76,67 @@ async function main(): Promise<void> {
       isLive: true,
       enabled: true,
       config: { minBet: "0.10", maxBet: "5000", maxMultiplier: 1000 },
-      thumbnailUrl: "/games/crash.png",
+      thumbnailUrl: "/games/crash.jpg",
+    },
+  });
+
+  const roulette = await prisma.game.upsert({
+    where: { slug: "roulette-european" },
+    update: {
+      rtp: "80.0",
+      houseEdge: "20.0",
+      thumbnailUrl: "/games/roulette.jpg",
+    },
+    create: {
+      slug: "roulette-european",
+      name: "European Roulette",
+      category: GameCategory.roulette,
+      rtp: "80.0",
+      houseEdge: "20.0",
+      isLive: false,
+      enabled: true,
+      config: { minBet: "0.50", maxBet: "5000", maxMultiplier: 36 },
+      thumbnailUrl: "/games/roulette.jpg",
+    },
+  });
+
+  const blackjack = await prisma.game.upsert({
+    where: { slug: "blackjack-az" },
+    update: {
+      rtp: "80.0",
+      houseEdge: "20.0",
+      thumbnailUrl: "/games/blackjack.jpg",
+    },
+    create: {
+      slug: "blackjack-az",
+      name: "Blackjack AZ",
+      category: GameCategory.blackjack,
+      rtp: "80.0",
+      houseEdge: "20.0",
+      isLive: false,
+      enabled: true,
+      config: { minBet: "1.00", maxBet: "10000", maxMultiplier: 2.5 },
+      thumbnailUrl: "/games/blackjack.jpg",
+    },
+  });
+
+  const slots = await prisma.game.upsert({
+    where: { slug: "slots-nova" },
+    update: {
+      rtp: "80.0",
+      houseEdge: "20.0",
+      thumbnailUrl: "/games/slots.jpg",
+    },
+    create: {
+      slug: "slots-nova",
+      name: "Nova Slots",
+      category: GameCategory.slots,
+      rtp: "80.0",
+      houseEdge: "20.0",
+      isLive: false,
+      enabled: true,
+      config: { minBet: "0.05", maxBet: "500", maxMultiplier: 400 },
+      thumbnailUrl: "/games/slots.jpg",
     },
   });
 
@@ -92,7 +154,7 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log("Seed complete:", { admin: admin.email, wallet: wallet.id, games: [dice.slug, crash.slug] });
+  console.log("Seed complete:", { admin: admin.email, wallet: wallet.id, games: [dice.slug, crash.slug, roulette.slug, blackjack.slug, slots.slug] });
 }
 
 main()

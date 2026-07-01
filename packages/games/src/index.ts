@@ -14,7 +14,7 @@ import type {
   ProvablyFairSeedPair,
 } from "@nova/types";
 
-const HOUSE_EDGE_BPS = Number(process.env.HOUSE_EDGE_BPS ?? 150);
+const HOUSE_EDGE_BPS = Number(process.env.HOUSE_EDGE_BPS ?? 2000);
 const MIN_BET = process.env.MIN_BET_DEFAULT ?? "0.10";
 const MAX_BET = process.env.MAX_BET_DEFAULT ?? "10000";
 const ROLLOVER_BUCKETS = 100_000; // 0.00000 to 100.00000

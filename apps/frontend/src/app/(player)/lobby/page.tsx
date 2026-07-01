@@ -32,8 +32,8 @@ async function fetchGames(): Promise<GameDTO[]> {
 export default async function LobbyPage(): Promise<React.ReactElement> {
   const games = await fetchGames();
   const fallback = [
-    { id: "fallback-1", slug: "dice-100", name: "Dice 100", category: "dice", rtp: 98.5, houseEdge: 1.5, isLive: false, thumbnail: "" },
-    { id: "fallback-2", slug: "crash-arcade", name: "Crash Arcade", category: "crash", rtp: 99.0, houseEdge: 1.0, isLive: true, thumbnail: "" },
+    { id: "fallback-1", slug: "dice-100", name: "Dice 100", category: "dice", rtp: 80.0, houseEdge: 20.0, isLive: false, thumbnail: "" },
+    { id: "fallback-2", slug: "crash-arcade", name: "Crash Arcade", category: "crash", rtp: 80.0, houseEdge: 20.0, isLive: true, thumbnail: "" },
   ];
   const list = games.length > 0 ? games : fallback;
 

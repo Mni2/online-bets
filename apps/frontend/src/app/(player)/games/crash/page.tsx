@@ -248,21 +248,106 @@ export default function CrashPage(): React.ReactElement {
         ctx.lineTo(mapX(elapsed), mapY(gameState.currentMultiplier));
         ctx.stroke();
 
-        // Draw glowing rocket node
-        const rocketX = mapX(elapsed);
-        const rocketY = mapY(gameState.currentMultiplier);
-        
-        ctx.fillStyle = "#00FFFF";
+        // Draw flying kite instead of simple dot
+        const kiteX = mapX(elapsed);
+        const kiteY = mapY(gameState.currentMultiplier);
+
+        // Kite physics & tail wiggle animation
+        const timeFactor = Date.now() / 150;
+        const tailWiggleX1 = Math.sin(timeFactor) * 8;
+        const tailWiggleY1 = Math.cos(timeFactor) * 4;
+        const tailWiggleX2 = Math.sin(timeFactor + 1) * 14;
+        const tailWiggleY2 = Math.cos(timeFactor + 1) * 6;
+        const tailWiggleX3 = Math.sin(timeFactor + 2) * 20;
+
+        // 1. Draw Kite Tail
+        ctx.strokeStyle = "#FF5F5F";
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.arc(rocketX, rocketY, 8, 0, 2 * Math.PI);
-        ctx.fill();
+        // Tail starts at bottom of kite
+        const tailStartX = kiteX - 10;
+        const tailStartY = kiteY + 15;
+        ctx.moveTo(tailStartX, tailStartY);
         
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "#00FFFF";
-        ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
+        // Dynamic wiggling tail segments (Bezier curves)
+        const cp1x = tailStartX - 15 + tailWiggleX1;
+        const cp1y = tailStartY + 15 + tailWiggleY1;
+        const cp2x = tailStartX - 30 + tailWiggleX2;
+        const cp2y = tailStartY + 25 + tailWiggleY2;
+        const endX = tailStartX - 45 + tailWiggleX3;
+        const endY = tailStartY + 35;
+        
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+        ctx.stroke();
+
+        // 2. Draw bows on the tail
+        const drawBow = (x: number, y: number, angle: number) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(angle);
+          ctx.fillStyle = "#FFB000";
+          ctx.beginPath();
+          // Draw left bow wing
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-6, -4);
+          ctx.lineTo(-6, 4);
+          ctx.closePath();
+          // Draw right bow wing
+          ctx.moveTo(0, 0);
+          ctx.lineTo(6, -4);
+          ctx.lineTo(6, 4);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        };
+
+        // Draw 3 bows at intervals along the tail
+        drawBow(tailStartX - 12 + tailWiggleX1 / 2, tailStartY + 8 + tailWiggleY1 / 2, 0.2);
+        drawBow(tailStartX - 25 + tailWiggleX2 / 2, tailStartY + 18 + tailWiggleY2 / 2, -0.1);
+        drawBow(tailStartX - 38 + tailWiggleX3 / 2, tailStartY + 28, 0.3);
+
+        // 3. Draw Kite Diamond Body (with orange/red gradient fill)
+        const gradient = ctx.createLinearGradient(kiteX - 10, kiteY - 15, kiteX + 15, kiteY + 15);
+        gradient.addColorStop(0, "#FF8A00");
+        gradient.addColorStop(1, "#E52E2E");
+        
+        ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(rocketX, rocketY, 16, 0, 2 * Math.PI);
+        ctx.moveTo(kiteX, kiteY - 18);     // Top point
+        ctx.lineTo(kiteX + 15, kiteY);      // Right point
+        ctx.lineTo(kiteX - 10, kiteY + 15);  // Bottom point
+        ctx.lineTo(kiteX - 18, kiteY);      // Left point
+        ctx.closePath();
         ctx.fill();
+
+        // 4. Draw Kite frame lines (cross struts)
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.lineWidth = 1.5;
+        
+        // Vertical strut
+        ctx.beginPath();
+        ctx.moveTo(kiteX, kiteY - 18);
+        ctx.lineTo(kiteX - 10, kiteY + 15);
+        ctx.stroke();
+        
+        // Horizontal strut
+        ctx.beginPath();
+        ctx.moveTo(kiteX - 18, kiteY);
+        ctx.lineTo(kiteX + 15, kiteY);
+        ctx.stroke();
+
+        // 5. Draw glowing aura surrounding the kite
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#FFB000";
+        ctx.strokeStyle = "rgba(255, 176, 0, 0.4)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(kiteX, kiteY - 18);
+        ctx.lineTo(kiteX + 15, kiteY);
+        ctx.lineTo(kiteX - 10, kiteY + 15);
+        ctx.lineTo(kiteX - 18, kiteY);
+        ctx.closePath();
+        ctx.stroke();
         ctx.shadowBlur = 0; // Reset
       }
 

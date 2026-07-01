@@ -42,13 +42,16 @@ async function main(): Promise<void> {
 
   const dice = await prisma.game.upsert({
     where: { slug: "dice-100" },
-    update: {},
+    update: {
+      rtp: "80.0",
+      houseEdge: "20.0",
+    },
     create: {
       slug: "dice-100",
       name: "Dice 100",
       category: GameCategory.dice,
-      rtp: "98.5",
-      houseEdge: "1.5",
+      rtp: "80.0",
+      houseEdge: "20.0",
       isLive: false,
       enabled: true,
       config: { minBet: "0.10", maxBet: "10000", maxMultiplier: 99 },
@@ -58,13 +61,16 @@ async function main(): Promise<void> {
 
   const crash = await prisma.game.upsert({
     where: { slug: "crash-arcade" },
-    update: {},
+    update: {
+      rtp: "80.0",
+      houseEdge: "20.0",
+    },
     create: {
       slug: "crash-arcade",
       name: "Crash Arcade",
       category: GameCategory.crash,
-      rtp: "99.0",
-      houseEdge: "1.0",
+      rtp: "80.0",
+      houseEdge: "20.0",
       isLive: true,
       enabled: true,
       config: { minBet: "0.10", maxBet: "5000", maxMultiplier: 1000 },

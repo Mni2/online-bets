@@ -10,7 +10,7 @@ const features = [
 ];
 
 const games = [
-  { slug: "dice", name: "Dice 100", tag: "Originals", desc: "Roll under or over. 1.5% house edge." },
+  { slug: "dice", name: "Dice 100", tag: "Originals", desc: "Roll under or over. 20.0% house edge." },
   { slug: "crash", name: "Crash Arcade", tag: "Live", desc: "Cash out before the rocket leaves." },
   { slug: "roulette", name: "European Roulette", tag: "Live", desc: "Single-zero wheel, classic bets." },
   { slug: "blackjack", name: "Blackjack AZ", tag: "Table", desc: "Six-deck shoe, late surrender." },

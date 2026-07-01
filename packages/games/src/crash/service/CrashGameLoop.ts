@@ -49,7 +49,7 @@ export class CrashGameLoop {
   private activeSessions: Map<string, CrashPlayerSession> = new Map(); // userId -> session
 
   private intervalId: NodeJS.Timeout | null = null;
-  private houseEdgeBps: number = 150; // 1.50% default
+  private houseEdgeBps: number = 2000; // 20.00% default
 
   // Callbacks passed by the orchestrator (Fastify Server)
   private onBroadcast: (msg: CrashBroadcastMessage) => void;

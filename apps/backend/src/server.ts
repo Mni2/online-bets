@@ -110,8 +110,8 @@ export const buildServer = async (): Promise<FastifyInstance> => {
   await app.register(authRoutes, { prefix: "/api/auth" });
   await app.register(userRoutes, { prefix: "/api/users" });
   await app.register(walletRoutes, { prefix: "/api/wallet" });
-  await app.register(gameRoutes, { prefix: "/api/games" });
   await app.register(crashRoutes, { prefix: "/api/games/crash" });
+  await app.register(gameRoutes, { prefix: "/api/games" });
   await app.register(adminRoutes, { prefix: "/api/admin" });
 
   const crashLoop = new CrashGameLoop(

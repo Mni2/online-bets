@@ -6,7 +6,9 @@ import { BRAND } from "@nova/shared";
 const links = [
   { href: "/", label: "Home" },
   { href: "/lobby", label: "Lobby" },
-  { href: "/games/dice", label: "Dice" },
+  { href: "/games/live", label: "Live Casino" },
+  { href: "/games/sports", label: "Sportsbook" },
+  { href: "/games/aggregator", label: "Aggregator" },
   { href: "/wallet", label: "Wallet" },
   { href: "/history", label: "History" },
 ];

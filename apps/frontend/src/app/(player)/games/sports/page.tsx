@@ -21,8 +21,69 @@ interface SportFixture {
   minute?: string;
 }
 
+const FALLBACK_FIXTURES: SportFixture[] = [
+  {
+    id: "match-1",
+    slug: "real-madrid-vs-mancity",
+    sport: "soccer",
+    league: "UEFA Champions League",
+    homeTeam: "Real Madrid CF",
+    awayTeam: "Manchester City",
+    startTime: new Date(Date.now() + 1000 * 60 * 30).toISOString(),
+    status: "live",
+    homeOdds: 2.40,
+    drawOdds: 2.40,
+    awayOdds: 2.40,
+    homeScore: 1,
+    awayScore: 1,
+    minute: "68'",
+  },
+  {
+    id: "match-2",
+    slug: "lakers-vs-celtics",
+    sport: "basketball",
+    league: "NBA Finals Game 7",
+    homeTeam: "Los Angeles Lakers",
+    awayTeam: "Boston Celtics",
+    startTime: new Date(Date.now() + 1000 * 60 * 120).toISOString(),
+    status: "live",
+    homeOdds: 1.60,
+    awayOdds: 1.60,
+    homeScore: 98,
+    awayScore: 96,
+    minute: "Q4 04:12",
+  },
+  {
+    id: "match-3",
+    slug: "alcaraz-vs-sinner",
+    sport: "tennis",
+    league: "Wimbledon Men's Final",
+    homeTeam: "Carlos Alcaraz",
+    awayTeam: "Jannik Sinner",
+    startTime: new Date(Date.now() + 1000 * 60 * 240).toISOString(),
+    status: "upcoming",
+    homeOdds: 1.60,
+    awayOdds: 1.60,
+  },
+  {
+    id: "match-4",
+    slug: "navi-vs-faze",
+    sport: "esports",
+    league: "CS2 Cologne Grand Final",
+    homeTeam: "Natus Vincere",
+    awayTeam: "FaZe Clan",
+    startTime: new Date(Date.now() + 1000 * 60 * 60).toISOString(),
+    status: "live",
+    homeOdds: 1.60,
+    awayOdds: 1.60,
+    homeScore: 14,
+    awayScore: 13,
+    minute: "Map 3 - Mirage",
+  },
+];
+
 export default function SportsbookPage(): React.ReactElement {
-  const [fixtures, setFixtures] = useState<SportFixture[]>([]);
+  const [fixtures, setFixtures] = useState<SportFixture[]>(FALLBACK_FIXTURES);
   const [selectedBet, setSelectedBet] = useState<{
     fixtureSlug: string;
     fixtureName: string;

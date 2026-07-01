@@ -15,6 +15,9 @@ const games = [
   { slug: "roulette", name: "European Roulette", tag: "Live", desc: "Single-zero VIP wheel. 80% RTP.", thumb: "/games/roulette.jpg" },
   { slug: "blackjack", name: "Blackjack AZ", tag: "Table", desc: "6-deck shoe, double & surrender. 80% RTP.", thumb: "/games/blackjack.jpg" },
   { slug: "slots", name: "Nova Slots", tag: "Slots", desc: "5x3 Neon Reels, 20 paylines. 80% RTP.", thumb: "/games/slots.jpg" },
+  { slug: "live", name: "VIP Live Dealer", tag: "Live Studio", desc: "HD streaming video simulation. 80% RTP.", thumb: "/games/live.jpg" },
+  { slug: "sports", name: "VIP Sportsbook", tag: "Sports", desc: "Live match odds & virtual simulation. 80% RTP.", thumb: "/games/sports.jpg" },
+  { slug: "aggregator", name: "Game Aggregator", tag: "Enterprise", desc: "Unified studio catalog & operator KPIs.", thumb: "/games/aggregator.jpg" },
 ];
 
 export default function HomePage(): React.ReactElement {

@@ -37,6 +37,9 @@ export default async function LobbyPage(): Promise<React.ReactElement> {
     { id: "fallback-3", slug: "blackjack-az", name: "Blackjack AZ", category: "blackjack", rtp: 80.0, houseEdge: 20.0, isLive: false, thumbnail: "/games/blackjack.jpg" },
     { id: "fallback-4", slug: "slots-nova", name: "Nova Slots", category: "slots", rtp: 80.0, houseEdge: 20.0, isLive: false, thumbnail: "/games/slots.jpg" },
     { id: "fallback-5", slug: "dice-100", name: "Dice 100", category: "dice", rtp: 80.0, houseEdge: 20.0, isLive: false, thumbnail: "/games/dice.jpg" },
+    { id: "fallback-6", slug: "live-casino", name: "VIP Live Dealer", category: "live", rtp: 80.0, houseEdge: 20.0, isLive: true, thumbnail: "/games/live.jpg" },
+    { id: "fallback-7", slug: "sports-royale", name: "VIP Sportsbook", category: "sports", rtp: 80.0, houseEdge: 20.0, isLive: true, thumbnail: "/games/sports.jpg" },
+    { id: "fallback-8", slug: "game-aggregator", name: "Game Aggregator", category: "aggregator", rtp: 80.0, houseEdge: 20.0, isLive: false, thumbnail: "/games/aggregator.jpg" },
   ];
   const list = games.length > 0 ? games : fallback;
 

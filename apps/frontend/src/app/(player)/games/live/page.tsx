@@ -19,8 +19,67 @@ interface LiveTable {
   category: string;
 }
 
+const FALLBACK_TABLES: LiveTable[] = [
+  {
+    id: "live-1",
+    slug: "live-vip-roulette",
+    name: "Monte Carlo VIP Roulette",
+    provider: "Evolution",
+    dealerName: "Elena",
+    dealerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+    minBet: "1.00",
+    maxBet: "10000.00",
+    rtp: 80.0,
+    houseEdge: 20.0,
+    status: "open",
+    category: "roulette",
+  },
+  {
+    id: "live-2",
+    slug: "live-vip-blackjack",
+    name: "Grand Casino VIP Blackjack",
+    provider: "PragmaticLive",
+    dealerName: "Victoria",
+    dealerAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80",
+    minBet: "5.00",
+    maxBet: "25000.00",
+    rtp: 80.0,
+    houseEdge: 20.0,
+    status: "open",
+    category: "blackjack",
+  },
+  {
+    id: "live-3",
+    slug: "live-highroller-baccarat",
+    name: "Imperial High-Roller Baccarat",
+    provider: "Ezugi",
+    dealerName: "Sophia",
+    dealerAvatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&auto=format&fit=crop&q=80",
+    minBet: "10.00",
+    maxBet: "50000.00",
+    rtp: 80.0,
+    houseEdge: 20.0,
+    status: "open",
+    category: "baccarat",
+  },
+  {
+    id: "live-4",
+    slug: "live-cyber-show",
+    name: "Cyber Fortune Live Game Show",
+    provider: "NovaStudio",
+    dealerName: "Chloe",
+    dealerAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80",
+    minBet: "0.50",
+    maxBet: "15000.00",
+    rtp: 80.0,
+    houseEdge: 20.0,
+    status: "open",
+    category: "gameshow",
+  },
+];
+
 export default function LiveDealerPage(): React.ReactElement {
-  const [tables, setTables] = useState<LiveTable[]>([]);
+  const [tables, setTables] = useState<LiveTable[]>(FALLBACK_TABLES);
   const [activeTable, setActiveTable] = useState<LiveTable | null>(null);
   const [selectedChip, setSelectedChip] = useState<number>(5);
   const [selectedBet, setSelectedBet] = useState<string>("red");

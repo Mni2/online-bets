@@ -71,12 +71,15 @@ export class CrashGameLoop {
   public async start(): Promise<void> {
     if (this.intervalId) return;
 
-    // Load or initialize nonce from existing database rounds for "crash-arcade"
-    const game = await this.prisma.game.findUnique({ where: { slug: "crash-arcade" } });
-    if (game) {
-      const roundCount = await this.prisma.gameRound.count({ where: { gameId: game.id } });
-      this.currentNonce = roundCount + 1;
-      this.houseEdgeBps = Number(game.houseEdge) * 100;
+    try {
+      const game = await this.prisma.game.findUnique({ where: { slug: "crash-arcade" } });
+      if (game) {
+        const roundCount = await this.prisma.gameRound.count({ where: { gameId: game.id } });
+        this.currentNonce = roundCount + 1;
+        this.houseEdgeBps = Number(game.houseEdge) * 100;
+      }
+    } catch (err: any) {
+      console.warn("[CRASH ENGINE] Database unreachable or table missing on startup. Using default nonce=1 and houseEdge=2000.", err?.message);
     }
 
     // Set up 100ms game tick loop

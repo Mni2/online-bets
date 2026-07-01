@@ -14,6 +14,7 @@ import { walletRoutes } from "./routes/wallet.js";
 import { gameRoutes } from "./routes/games.js";
 import { crashRoutes } from "./routes/crash.js";
 import { rouletteRoutes } from "./routes/roulette.js";
+import { blackjackRoutes } from "./routes/blackjack.js";
 import { userRoutes } from "./routes/users.js";
 import { adminRoutes } from "./routes/admin.js";
 import { systemRoutes } from "./routes/system.js";
@@ -113,6 +114,7 @@ export const buildServer = async (): Promise<FastifyInstance> => {
   await app.register(walletRoutes, { prefix: "/api/wallet" });
   await app.register(crashRoutes, { prefix: "/api/games/crash" });
   await app.register(rouletteRoutes, { prefix: "/api/games/roulette" });
+  await app.register(blackjackRoutes, { prefix: "/api/games/blackjack" });
   await app.register(gameRoutes, { prefix: "/api/games" });
   await app.register(adminRoutes, { prefix: "/api/admin" });
 

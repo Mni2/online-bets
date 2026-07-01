@@ -104,23 +104,28 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         });
       }
       const passwordHash = await hashPassword(body.password);
+      
+      const hasReferral = typeof body.referralCode === "string" && body.referralCode.trim() !== "";
+      const referralCode = hasReferral ? body.referralCode.trim() : null;
+
       const user = await prisma.user.create({
         data: {
           email: body.email.toLowerCase(),
           username: body.username,
           displayName: body.displayName,
           passwordHash,
-          referralCode: body.referralCode ?? null,
+          referralCode,
         },
       });
-      if (body.referralCode) {
-        const referrer = await prisma.user.findFirst({ where: { referralCode: body.referralCode } });
+
+      if (referralCode) {
+        const referrer = await prisma.user.findFirst({ where: { referralCode } });
         if (referrer) {
           await prisma.referral.create({
             data: {
               referrerId: referrer.id,
               referredId: user.id,
-              code: body.referralCode,
+              code: referralCode,
             },
           });
         }

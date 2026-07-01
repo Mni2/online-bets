@@ -249,3 +249,4 @@ export * from "./crash/engine/math.js";
 export * from "./crash/provably-fair/verification.js";
 export * from "./crash/service/CrashGameLoop.js";
 export * from "./crash/tests/crash.spec.js";
+export * from "./roulette/engine/roulette.js";

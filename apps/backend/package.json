@@ -19,7 +19,7 @@
     "@fastify/sensible": "5.6.0",
     "@fastify/swagger": "8.12.0",
     "@fastify/swagger-ui": "4.1.0",
-    "@fastify/websocket": "^11.2.0",
+    "@fastify/websocket": "^8.3.1",
     "@nova/auth": "*",
     "@nova/database": "*",
     "@nova/games": "*",

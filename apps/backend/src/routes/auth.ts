@@ -125,13 +125,133 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
           });
         }
       }
-      const result = await authenticate({
-        identifier: body.email,
-        password: body.password,
-        ip: req.ip,
-        userAgent: req.headers["user-agent"] ?? "",
+
+      // Generate Email verification OTP
+      const emailOtp = generateOTPCode();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailOtpCode: emailOtp, emailOtpExpiresAt: expiresAt },
       });
-      return reply.send(result);
+
+      console.log(`[Registration] Email verification OTP for ${user.email}: ${emailOtp}`);
+
+      return reply.send({
+        status: "email_verification_required",
+        userId: user.id,
+        devEmailOtpCode: emailOtp, // Always return code in demo for easy testing
+      });
+    }
+  );
+
+  app.post(
+    "/register/verify-email",
+    { schema: { body: verifyEmailBodySchema } },
+    async (req, reply) => {
+      const { userId, code } = req.body as { userId: string; code: string };
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (
+        !user ||
+        !user.emailOtpCode ||
+        !user.emailOtpExpiresAt ||
+        user.emailOtpExpiresAt < new Date()
+      ) {
+        return reply.code(400).send({
+          error: { code: "invalid_request", message: "Verification code expired or invalid" },
+        });
+      }
+
+      if (user.emailOtpCode !== code) {
+        return reply.code(400).send({
+          error: { code: "invalid_code", message: "Invalid verification code" },
+        });
+      }
+
+      // Clear OTP and set emailVerifiedAt
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          emailOtpCode: null,
+          emailOtpExpiresAt: null,
+          emailVerifiedAt: new Date(),
+        },
+      });
+
+      // Generate access and refresh tokens to log in
+      const { signAccessToken, signRefreshToken, sha256 } = await import("@nova/auth");
+      const REFRESH_TTL = Number(process.env.JWT_REFRESH_TTL ?? 60 * 60 * 24 * 30);
+      
+      const claims = { sub: user.id, role: user.role, username: user.username };
+      const accessToken = signAccessToken(claims);
+      const refreshToken = signRefreshToken(claims);
+      const tokenHash = sha256(refreshToken);
+
+      await prisma.refreshToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          ip: req.ip,
+          device: req.headers["user-agent"] ?? "",
+          expiresAt: new Date(Date.now() + REFRESH_TTL * 1000),
+        },
+      });
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date(), lastLoginIp: req.ip },
+      });
+
+      const ACCESS_TTL = Number(process.env.JWT_ACCESS_TTL ?? 900);
+
+      return reply.send({
+        accessToken,
+        refreshToken,
+        expiresIn: ACCESS_TTL,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          displayName: user.displayName,
+          role: user.role,
+        },
+      });
+    }
+  );
+
+  app.post(
+    "/register/resend-email-otp",
+    { schema: { body: resendEmailOtpBodySchema } },
+    async (req, reply) => {
+      const { userId } = req.body as { userId: string };
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        return reply.code(400).send({
+          error: { code: "invalid_request", message: "Invalid request" },
+        });
+      }
+
+      if (user.emailVerifiedAt) {
+        return reply.code(400).send({
+          error: { code: "already_verified", message: "Email is already verified" },
+        });
+      }
+
+      // Generate new Email OTP (Factor 3)
+      const emailOtp = generateOTPCode();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { emailOtpCode: emailOtp, emailOtpExpiresAt: expiresAt },
+      });
+
+      // Log OTP
+      console.log(`[Registration] Resent email verification OTP for user ${user.email}: ${emailOtp}`);
+
+      return reply.send({
+        status: "email_verification_required",
+        userId: user.id,
+        devEmailOtpCode: emailOtp, // Always return code in demo for easy testing
+      });
     }
   );
 
@@ -218,27 +338,49 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         });
       }
 
-      // Enable TOTP
+      // Enable TOTP and clear email OTP fields
       await prisma.user.update({
         where: { id: userId },
-        data: { totpEnabled: true },
+        data: { totpEnabled: true, emailOtpCode: null, emailOtpExpiresAt: null },
       });
 
-      // Send Email OTP (Factor 3)
-      const emailOtp = generateOTPCode();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+      // Generate access and refresh tokens to log in directly (2FA complete)
+      const { signAccessToken, signRefreshToken, sha256 } = await import("@nova/auth");
+      const REFRESH_TTL = Number(process.env.JWT_REFRESH_TTL ?? 60 * 60 * 24 * 30);
+      
+      const claims = { sub: user.id, role: user.role, username: user.username };
+      const accessToken = signAccessToken(claims);
+      const refreshToken = signRefreshToken(claims);
+      const tokenHash = sha256(refreshToken);
+
+      await prisma.refreshToken.create({
+        data: {
+          userId: user.id,
+          tokenHash,
+          ip: req.ip,
+          device: req.headers["user-agent"] ?? "",
+          expiresAt: new Date(Date.now() + REFRESH_TTL * 1000),
+        },
+      });
+
       await prisma.user.update({
-        where: { id: userId },
-        data: { emailOtpCode: emailOtp, emailOtpExpiresAt: expiresAt },
+        where: { id: user.id },
+        data: { lastLoginAt: new Date(), lastLoginIp: req.ip },
       });
 
-      // Log OTP (simulated email delivery)
-      console.log(`[MFA] Email OTP for user ${user.email}: ${emailOtp}`);
+      const ACCESS_TTL = Number(process.env.JWT_ACCESS_TTL ?? 900);
 
       return reply.send({
-        status: "mfa_email_required",
-        userId: user.id,
-        devEmailOtpCode: emailOtp, // Always return code in demo for easy testing
+        accessToken,
+        refreshToken,
+        expiresIn: ACCESS_TTL,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          displayName: user.displayName,
+          role: user.role,
+        },
       });
     }
   );
@@ -262,86 +404,7 @@ export const authRoutes = async (app: FastifyInstance): Promise<void> => {
         });
       }
 
-      // Send Email OTP (Factor 3)
-      const emailOtp = generateOTPCode();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-      await prisma.user.update({
-        where: { id: userId },
-        data: { emailOtpCode: emailOtp, emailOtpExpiresAt: expiresAt },
-      });
-
-      // Log OTP
-      console.log(`[MFA] Email OTP for user ${user.email}: ${emailOtp}`);
-
-      return reply.send({
-        status: "mfa_email_required",
-        userId: user.id,
-        devEmailOtpCode: emailOtp, // Always return code in demo for easy testing
-      });
-    }
-  );
-
-  app.post(
-    "/mfa/resend-email-otp",
-    { schema: { body: resendEmailOtpBodySchema } },
-    async (req, reply) => {
-      const { userId } = req.body as { userId: string };
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user || !user.totpEnabled) {
-        return reply.code(400).send({
-          error: { code: "invalid_request", message: "Invalid request" },
-        });
-      }
-
-      // Generate new Email OTP (Factor 3)
-      const emailOtp = generateOTPCode();
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-      await prisma.user.update({
-        where: { id: userId },
-        data: { emailOtpCode: emailOtp, emailOtpExpiresAt: expiresAt },
-      });
-
-      // Log OTP
-      console.log(`[MFA] Resent Email OTP for user ${user.email}: ${emailOtp}`);
-
-      return reply.send({
-        status: "mfa_email_required",
-        userId: user.id,
-        devEmailOtpCode: emailOtp, // Always return code in demo for easy testing
-      });
-    }
-  );
-
-  app.post(
-    "/mfa/verify-email",
-    { schema: { body: verifyEmailBodySchema } },
-    async (req, reply) => {
-      const { userId, code } = req.body as { userId: string; code: string };
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (
-        !user ||
-        !user.emailOtpCode ||
-        !user.emailOtpExpiresAt ||
-        user.emailOtpExpiresAt < new Date()
-      ) {
-        return reply.code(400).send({
-          error: { code: "invalid_request", message: "Verification code expired or invalid" },
-        });
-      }
-
-      if (user.emailOtpCode !== code) {
-        return reply.code(400).send({
-          error: { code: "invalid_code", message: "Invalid verification code" },
-        });
-      }
-
-      // Clear OTP
-      await prisma.user.update({
-        where: { id: userId },
-        data: { emailOtpCode: null, emailOtpExpiresAt: null },
-      });
-
-      // Generate standard access and refresh tokens
+      // Generate access and refresh tokens to log in directly (2FA complete)
       const { signAccessToken, signRefreshToken, sha256 } = await import("@nova/auth");
       const REFRESH_TTL = Number(process.env.JWT_REFRESH_TTL ?? 60 * 60 * 24 * 30);
       

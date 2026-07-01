@@ -17,7 +17,8 @@
     "dev:admin": "npm run dev --workspace apps/admin",
     "db:generate": "npm run prisma:generate --workspace packages/database",
     "db:migrate": "npm run prisma:migrate --workspace packages/database",
-    "db:seed": "npm run prisma:seed --workspace packages/database"
+    "db:seed": "npm run prisma:seed --workspace packages/database",
+    "postinstall": "npm run db:generate --if-present"
   },
   "engines": {
     "node": ">=20.10.0",

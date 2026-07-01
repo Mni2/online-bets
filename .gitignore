@@ -17,4 +17,4 @@ prisma/dev.db*
 !.vscode/extensions.json
 .idea
 work-subdec.mjs
-package-lock.json
+.vercel
